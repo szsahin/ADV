@@ -109,4 +109,4 @@ To add a new tool (e.g., "JWT Decoder"):
 
 ## License
 
- GPL-3.0 license
+MIT

@@ -11,7 +11,7 @@ import { COMMON_WORDS, EFF_WORDS, getRandomWords } from '../../../lib/wordlists'
 
 type GenerationMode = 'character' | 'passphrase';
 type SeparatorType = 'character' | 'random' | 'both';
-type Capitalization = 'none' | 'first' | 'random';
+type Capitalization = 'none' | 'first' | 'random' | 'random-char';
 
 interface PasswordGeneratorProps {
   onGenerate: (item: HistoryItem) => void;
@@ -32,6 +32,15 @@ function applyCapitalization(words: string[], style: Capitalization): string[] {
       const array = new Uint8Array(1);
       crypto.getRandomValues(array);
       return array[0] % 2 === 0 ? w.toUpperCase() : w;
+    });
+  }
+  if (style === 'random-char') {
+    return words.map(w => {
+      return w.split('').map(c => {
+        const array = new Uint8Array(1);
+        crypto.getRandomValues(array);
+        return array[0] % 2 === 0 ? c.toUpperCase() : c.toLowerCase();
+      }).join('');
     });
   }
   return words;
@@ -254,81 +263,80 @@ export function PasswordGenerator({ onGenerate }: PasswordGeneratorProps) {
           {/* Wordlist Source */}
           <div>
             <label className="text-sm font-medium text-gray-300 mb-2 block">Wordlist Source</label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => { setWordlistSource('builtin'); setCustomWordlist([]); }}
-                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                  wordlistSource === 'builtin' && customWordlist.length === 0
-                    ? 'border-blue-500 bg-blue-900/20 text-blue-400'
-                    : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                <BookOpen size={16} className="mx-auto mb-1" />
-                Built-in
-                <div className="text-[10px] text-gray-600 mt-0.5">{COMMON_WORDS.length} words</div>
-              </button>
-              <button
-                onClick={() => { setWordlistSource('eff'); setCustomWordlist([]); }}
-                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                  wordlistSource === 'eff' && customWordlist.length === 0
-                    ? 'border-blue-500 bg-blue-900/20 text-blue-400'
-                    : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                <BookOpen size={16} className="mx-auto mb-1" />
-                EFF Large
-                <div className="text-[10px] text-gray-600 mt-0.5">{EFF_WORDS.length} words</div>
-              </button>
-              <button
-                onClick={() => { setCustomWordlist([]); }}
-                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                  customWordlist.length > 0
-                    ? 'border-blue-500 bg-blue-900/20 text-blue-400'
-                    : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                <Upload size={16} className="mx-auto mb-1" />
-                Custom
-                <div className="text-[10px] text-gray-600 mt-0.5">
-                  {customWordlist.length > 0 ? `${customWordlist.length} words` : 'Upload .txt'}
-                </div>
-              </button>
-            </div>
 
-            {customWordlist.length === 0 && (
-              <div className="mt-3 flex gap-2">
-                <label className="flex-1">
+            {customWordlist.length === 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => { setWordlistSource('builtin'); }}
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                    wordlistSource === 'builtin'
+                      ? 'border-blue-500 bg-blue-900/20 text-blue-400'
+                      : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <BookOpen size={16} className="mx-auto mb-1" />
+                  Built-in
+                  <div className="text-[10px] text-gray-600 mt-0.5">{COMMON_WORDS.length} words</div>
+                </button>
+                <button
+                  onClick={() => { setWordlistSource('eff'); }}
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                    wordlistSource === 'eff'
+                      ? 'border-blue-500 bg-blue-900/20 text-blue-400'
+                      : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <BookOpen size={16} className="mx-auto mb-1" />
+                  EFF Large
+                  <div className="text-[10px] text-gray-600 mt-0.5">{EFF_WORDS.length} words</div>
+                </button>
+                <label className={`p-3 rounded-xl border-2 text-sm font-medium transition-all cursor-pointer ${
+                  'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600 hover:text-gray-300'
+                }`}>
                   <input
                     type="file"
                     accept=".txt"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <span className="block w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm text-gray-400 text-center cursor-pointer hover:border-gray-600 transition-all">
-                    Choose Wordlist File (.txt)
-                  </span>
+                  <Upload size={16} className="mx-auto mb-1" />
+                  Custom
+                  <div className="text-[10px] text-gray-600 mt-0.5">Upload .txt</div>
                 </label>
-                <button
-                  onClick={downloadEffWordlist}
-                  className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-all flex items-center gap-2"
-                >
-                  <Download size={14} />
-                  EFF Template
-                </button>
               </div>
-            )}
-
-            {customWordlist.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-900/20 border border-blue-800/50 rounded-xl flex items-center justify-between">
-                <span className="text-sm text-blue-300">Loaded {customWordlist.length} custom words</span>
+            ) : (
+              <div className="p-3 bg-blue-900/20 border border-blue-800/50 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Upload size={16} className="text-blue-400" />
+                  <span className="text-sm text-blue-300">{customWordlist.length} custom words loaded</span>
+                </div>
                 <button
                   onClick={() => setCustomWordlist([])}
-                  className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-900/20"
                 >
                   Remove
                 </button>
               </div>
             )}
+
+            {/* EFF info + download */}
+            <div className="mt-3 flex items-center gap-3">
+              <a
+                href="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 hover:text-blue-400 transition-colors"
+              >
+                Download latest EFF wordlist →
+              </a>
+              <button
+                onClick={downloadEffWordlist}
+                className="text-xs text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+              >
+                <Download size={12} />
+                Save bundled copy
+              </button>
+            </div>
           </div>
 
           {/* Separator Type */}
@@ -395,11 +403,12 @@ export function PasswordGenerator({ onGenerate }: PasswordGeneratorProps) {
           {/* Capitalization */}
           <div>
             <label className="text-sm font-medium text-gray-300 mb-2 block">Capitalization Style</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 { id: 'none' as Capitalization, label: 'None', desc: 'all lowercase' },
                 { id: 'first' as Capitalization, label: 'First Letter', desc: 'Title Case' },
-                { id: 'random' as Capitalization, label: 'Random Full', desc: 'RANDOM words' },
+                { id: 'random' as Capitalization, label: 'Random Word', desc: 'WORD or word' },
+                { id: 'random-char' as Capitalization, label: 'Random Char', desc: 'pAsSwOrD' },
               ].map((cap) => (
                 <button
                   key={cap.id}
