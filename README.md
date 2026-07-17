@@ -1,4 +1,4 @@
-# Milidia - Advanced Security Tools
+# Advanced Password Generator
 
 A modern, client-side password generator, hash generator, and encoding tool built with React 19, TypeScript, Vite, and Tailwind CSS.
 
